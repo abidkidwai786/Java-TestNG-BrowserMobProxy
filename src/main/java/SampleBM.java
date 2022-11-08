@@ -27,6 +27,8 @@ public class SampleBM {
 
     public RemoteWebDriver driver;
     public BrowserMobProxy proxy;
+    public String username = System.getenv("LT_USERNAME");
+    public String accesskey = System.getenv("LT_ACCESS_KEY");
     Tunnel t;
 
     @org.testng.annotations.Parameters(value = {"browser", "version", "platform"})
@@ -42,6 +44,11 @@ public class SampleBM {
         String  portn = String.valueOf(proxy.getPort());
 
         // get the Selenium proxy object
+        proxy.addRequestFilter((request, contents, messageInfo)-> {
+                    request.headers().add("my-test-header", "my-test-value");
+                    System.out.println(request.headers().entries().toString());
+                    return null;
+                });
 
         Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
         String hostIp = Inet4Address.getLocalHost().getHostAddress();
@@ -56,8 +63,8 @@ public class SampleBM {
 
         t = new Tunnel();
         HashMap<String, String> options = new HashMap<String, String>();
-        options.put("user", "username");
-        options.put("key", "accesskey");
+        options.put("user", username);
+        options.put("key", accesskey);
         options.put("proxyHost",hostIp);
         options.put("proxyPort", portn);
         options.put("ingress-only", "--ingress-only");          //mandatory while using BM proxy
@@ -87,7 +94,7 @@ public class SampleBM {
         capabilities.setCapability("tunnel",true);
         capabilities.setCapability("tunnelName",portn);
 
-        driver = new RemoteWebDriver(new URL("https://username:accesskey@hub.lambdatest.com/wd/hub"),capabilities);
+        driver = new RemoteWebDriver(new URL("https://" + username + ":" + accesskey + "@hub.lambdatest.com" + "/wd/hub"),capabilities);
     }
 
     @Test
